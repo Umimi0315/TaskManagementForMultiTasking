@@ -66,6 +66,12 @@
       <DependentUpon>TaskCreateForm.cs</DependentUpon>
     </Compile>
     <Compile Include="TaskInfo.cs" />
+    <Compile Include="TaskNameModifyForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TaskNameModifyForm.Designer.cs">
+      <DependentUpon>TaskNameModifyForm.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="TaskCreateForm.resx">
       <DependentUpon>TaskCreateForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -81,6 +87,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="TaskNameModifyForm.resx">
+      <DependentUpon>TaskNameModifyForm.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

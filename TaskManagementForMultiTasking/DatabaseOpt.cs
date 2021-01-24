@@ -70,6 +70,15 @@ namespace TaskManagementForMultiTasking
             return result;
         }
 
+        //更新一条数据的某个字段
+        public static int updateOne(MySqlConnection conn,string taskId,string fieldName,string value)
+        {
+            string sql = "update task_info_table set " + fieldName + "='" + value + "' where taskId=" + taskId;
+            MySqlCommand command = new MySqlCommand(sql, conn);
+            int result=command.ExecuteNonQuery();
+            return result;
+        }
+
 
     }
 }

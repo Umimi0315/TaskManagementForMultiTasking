@@ -34,5 +34,26 @@ namespace TaskManagementForMultiTasking
             TaskCreateForm taskCreateForm = new TaskCreateForm(this.taskInfoDataGridView);
             taskCreateForm.ShowDialog();
         }
+
+        //右键菜单
+        private void taskInfoDataGridView_CellMouseUp(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                if (e.RowIndex >= 0)
+                {
+                    taskInfoDataGridView.ClearSelection();
+                    taskInfoDataGridView.Rows[e.RowIndex].Selected = true;
+                    taskInfoDataGridView.CurrentCell = taskInfoDataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                    taskOptContextMenuStrip.Show(MousePosition.X, MousePosition.Y);
+                }
+            }
+        }
+
+        private void taskNameModifyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            TaskNameModifyForm taskNameModifyForm = new TaskNameModifyForm(this.taskInfoDataGridView);
+            taskNameModifyForm.ShowDialog();
+        }
     }
 }
