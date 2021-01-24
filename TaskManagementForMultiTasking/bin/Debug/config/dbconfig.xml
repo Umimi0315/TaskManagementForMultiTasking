@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DatabaseConfig>
+<param name="DataSource">
+localhost
+</param>
+<param name="DatabaseName">
+task_info_db
+</param>
+<param name="username">
+root
+</param>
+<param name="password">
+sdxt7841176
+</param>
+</DatabaseConfig>
