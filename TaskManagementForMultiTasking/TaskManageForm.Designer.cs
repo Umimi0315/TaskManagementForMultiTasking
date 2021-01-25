@@ -40,15 +40,15 @@
             this.taskStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.taskTag = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.taskProgress = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.taskOptContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.taskActiveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.taskStartToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.taskStopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.taskNameModifyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.taskDeleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.reabsorptionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.taskCreateBtn = new System.Windows.Forms.Button();
             this.refreshTaskBtn = new System.Windows.Forms.Button();
-            this.taskOptContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.修改任务名ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.激活ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.启动ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.taskNameModifyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.删除任务ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.重新吸附ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.taskInfoDataGridView)).BeginInit();
             this.taskOptContextMenuStrip.SuspendLayout();
             this.SuspendLayout();
@@ -153,6 +153,61 @@
             this.taskProgress.Name = "taskProgress";
             this.taskProgress.ReadOnly = true;
             // 
+            // taskOptContextMenuStrip
+            // 
+            this.taskOptContextMenuStrip.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.taskOptContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.taskActiveToolStripMenuItem,
+            this.taskStartToolStripMenuItem,
+            this.taskStopToolStripMenuItem,
+            this.taskNameModifyToolStripMenuItem,
+            this.taskDeleteToolStripMenuItem,
+            this.reabsorptionToolStripMenuItem});
+            this.taskOptContextMenuStrip.Name = "taskOptContextMenuStrip";
+            this.taskOptContextMenuStrip.Size = new System.Drawing.Size(181, 158);
+            // 
+            // taskActiveToolStripMenuItem
+            // 
+            this.taskActiveToolStripMenuItem.Name = "taskActiveToolStripMenuItem";
+            this.taskActiveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.taskActiveToolStripMenuItem.Text = "激活任务";
+            this.taskActiveToolStripMenuItem.Click += new System.EventHandler(this.taskActiveToolStripMenuItem_Click);
+            // 
+            // taskStartToolStripMenuItem
+            // 
+            this.taskStartToolStripMenuItem.Name = "taskStartToolStripMenuItem";
+            this.taskStartToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.taskStartToolStripMenuItem.Text = "启动任务";
+            this.taskStartToolStripMenuItem.Click += new System.EventHandler(this.taskStartToolStripMenuItem_Click);
+            // 
+            // taskStopToolStripMenuItem
+            // 
+            this.taskStopToolStripMenuItem.Name = "taskStopToolStripMenuItem";
+            this.taskStopToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.taskStopToolStripMenuItem.Text = "停止任务";
+            this.taskStopToolStripMenuItem.Click += new System.EventHandler(this.taskStopToolStripMenuItem_Click);
+            // 
+            // taskNameModifyToolStripMenuItem
+            // 
+            this.taskNameModifyToolStripMenuItem.Name = "taskNameModifyToolStripMenuItem";
+            this.taskNameModifyToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.taskNameModifyToolStripMenuItem.Text = "修改任务";
+            this.taskNameModifyToolStripMenuItem.Click += new System.EventHandler(this.taskNameModifyToolStripMenuItem_Click);
+            // 
+            // taskDeleteToolStripMenuItem
+            // 
+            this.taskDeleteToolStripMenuItem.Name = "taskDeleteToolStripMenuItem";
+            this.taskDeleteToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.taskDeleteToolStripMenuItem.Text = "删除任务";
+            this.taskDeleteToolStripMenuItem.Click += new System.EventHandler(this.taskDeleteToolStripMenuItem_Click);
+            // 
+            // reabsorptionToolStripMenuItem
+            // 
+            this.reabsorptionToolStripMenuItem.Name = "reabsorptionToolStripMenuItem";
+            this.reabsorptionToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.reabsorptionToolStripMenuItem.Text = "重新吸附";
+            this.reabsorptionToolStripMenuItem.Click += new System.EventHandler(this.reabsorptionToolStripMenuItem_Click);
+            // 
             // taskCreateBtn
             // 
             this.taskCreateBtn.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
@@ -176,56 +231,6 @@
             this.refreshTaskBtn.UseVisualStyleBackColor = true;
             this.refreshTaskBtn.Click += new System.EventHandler(this.refreshTaskBtn_Click);
             // 
-            // taskOptContextMenuStrip
-            // 
-            this.taskOptContextMenuStrip.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.taskOptContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.激活ToolStripMenuItem,
-            this.启动ToolStripMenuItem,
-            this.修改任务名ToolStripMenuItem,
-            this.taskNameModifyToolStripMenuItem,
-            this.删除任务ToolStripMenuItem,
-            this.重新吸附ToolStripMenuItem});
-            this.taskOptContextMenuStrip.Name = "taskOptContextMenuStrip";
-            this.taskOptContextMenuStrip.Size = new System.Drawing.Size(181, 158);
-            // 
-            // 修改任务名ToolStripMenuItem
-            // 
-            this.修改任务名ToolStripMenuItem.Name = "修改任务名ToolStripMenuItem";
-            this.修改任务名ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.修改任务名ToolStripMenuItem.Text = "停止任务";
-            // 
-            // 激活ToolStripMenuItem
-            // 
-            this.激活ToolStripMenuItem.Name = "激活ToolStripMenuItem";
-            this.激活ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.激活ToolStripMenuItem.Text = "激活任务";
-            // 
-            // 启动ToolStripMenuItem
-            // 
-            this.启动ToolStripMenuItem.Name = "启动ToolStripMenuItem";
-            this.启动ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.启动ToolStripMenuItem.Text = "启动任务";
-            // 
-            // taskNameModifyToolStripMenuItem
-            // 
-            this.taskNameModifyToolStripMenuItem.Name = "taskNameModifyToolStripMenuItem";
-            this.taskNameModifyToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.taskNameModifyToolStripMenuItem.Text = "修改任务";
-            this.taskNameModifyToolStripMenuItem.Click += new System.EventHandler(this.taskNameModifyToolStripMenuItem_Click);
-            // 
-            // 删除任务ToolStripMenuItem
-            // 
-            this.删除任务ToolStripMenuItem.Name = "删除任务ToolStripMenuItem";
-            this.删除任务ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.删除任务ToolStripMenuItem.Text = "删除任务";
-            // 
-            // 重新吸附ToolStripMenuItem
-            // 
-            this.重新吸附ToolStripMenuItem.Name = "重新吸附ToolStripMenuItem";
-            this.重新吸附ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.重新吸附ToolStripMenuItem.Text = "重新吸附";
-            // 
             // TaskManageForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -237,7 +242,7 @@
             this.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "TaskManageForm";
-            this.Text = "Form1";
+            this.Text = " ";
             ((System.ComponentModel.ISupportInitialize)(this.taskInfoDataGridView)).EndInit();
             this.taskOptContextMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -260,12 +265,12 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn taskTag;
         private System.Windows.Forms.DataGridViewTextBoxColumn taskProgress;
         private System.Windows.Forms.ContextMenuStrip taskOptContextMenuStrip;
-        private System.Windows.Forms.ToolStripMenuItem 激活ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem 启动ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem 修改任务名ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem taskActiveToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem taskStartToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem taskStopToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem taskNameModifyToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem 删除任务ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem 重新吸附ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem taskDeleteToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem reabsorptionToolStripMenuItem;
     }
 }
 

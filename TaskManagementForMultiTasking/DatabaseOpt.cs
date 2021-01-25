@@ -79,6 +79,15 @@ namespace TaskManagementForMultiTasking
             return result;
         }
 
+        //删除一条数据
+        public static int deleteOne(MySqlConnection conn, string taskId)
+        {
+            string sql = "delete from task_info_table where taskId="+taskId;
+            MySqlCommand command = new MySqlCommand(sql,conn);
+            int result = command.ExecuteNonQuery();
+            return result;
+        }
+
 
     }
 }
