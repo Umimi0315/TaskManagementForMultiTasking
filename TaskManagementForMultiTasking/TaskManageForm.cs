@@ -42,9 +42,28 @@ namespace TaskManagementForMultiTasking
             {
                 if (e.RowIndex >= 0)
                 {
+                    //清空右键菜单的禁用选项
+                    for(int i = 0; i < taskOptContextMenuStrip.Items.Count; i++)
+                    {
+                        this.taskOptContextMenuStrip.Items[i].Enabled = true;
+                    }
+
                     taskInfoDataGridView.ClearSelection();
                     taskInfoDataGridView.Rows[e.RowIndex].Selected = true;
                     taskInfoDataGridView.CurrentCell = taskInfoDataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex];
+
+                    DataGridViewRow selectedTaskInfoDataGridViewRow = this.taskInfoDataGridView.CurrentRow;
+
+                    //禁用右键菜单栏中的某些项
+                    if ("激活".Equals(selectedTaskInfoDataGridViewRow.Cells["taskTag"].Value.ToString()))
+                    {
+                        this.taskOptContextMenuStrip.Items["taskActiveToolStripMenuItem"].Enabled = false;
+                    }
+                    if (!"停止".Equals(selectedTaskInfoDataGridViewRow.Cells["taskStatus"].Value.ToString()))
+                    {
+                        this.taskOptContextMenuStrip.Items["taskNameModifyToolStripMenuItem"].Enabled = false;
+                    }
+
                     taskOptContextMenuStrip.Show(MousePosition.X, MousePosition.Y);
                 }
             }
@@ -65,14 +84,29 @@ namespace TaskManagementForMultiTasking
         private void taskActiveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             //判断条件
-
-
-            //修改任务标志
-            string taskId= this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
             MySqlConnection conn=DatabaseOpt.getDBConnection();
-            DatabaseOpt.updateOne(conn, taskId, "taskTag", "激活");
-            DatabaseOpt.close(conn);
+
+            List<string> taskIdList = DatabaseOpt.queryTaskTag(conn);
+            if (taskIdList.Count > 0)
+            {
+                //显示弹窗
+                ActiveConfirmForm activeConfirmForm = new ActiveConfirmForm(taskIdList);
+                activeConfirmForm.ShowDialog();
+            }
+
+            if (!taskIdList.Contains("cancel"))
+            {
+                //修改任务标志
+                string taskId = this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
+                DatabaseOpt.updateOne(conn, taskId, "taskTag", "激活");
+                //激活任务代码
+
+
+
+                DatabaseOpt.close(conn);
+            }
             TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
+
         }
 
         //任务开始

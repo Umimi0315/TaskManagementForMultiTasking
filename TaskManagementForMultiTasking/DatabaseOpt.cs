@@ -88,6 +88,22 @@ namespace TaskManagementForMultiTasking
             return result;
         }
 
+        //查询标志为激活的任务id
+        public static List<string> queryTaskTag(MySqlConnection conn)
+        {
+            List<string> taskIdList = new List<string>();
+            string sql = "select taskId from task_info_table where taskTag='激活'";
+            MySqlCommand command = new MySqlCommand(sql, conn);
+            MySqlDataReader reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                string taskId = reader["taskId"].ToString();
+                taskIdList.Add(taskId);
+            }
+            reader.Close();
+            return taskIdList;
+        }
+
 
     }
 }
