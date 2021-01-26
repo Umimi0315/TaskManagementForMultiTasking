@@ -36,13 +36,24 @@ namespace TaskManagementForMultiTasking
         //确定按钮
         private void confirmBtn_Click(object sender, EventArgs e)
         {
-            string newTaskName = this.taskNameModifyTextBox.Text;
-            string taskId = taskDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
-            MySqlConnection conn = DatabaseOpt.getDBConnection();
-            DatabaseOpt.updateOne(conn, taskId, "taskName", newTaskName);
-            DatabaseOpt.close(conn);
-            TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskDataGridView);
-            this.Dispose();
+            MySqlConnection conn = null;
+
+            try
+            {
+                string newTaskName = this.taskNameModifyTextBox.Text;
+                string taskId = taskDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
+                conn = DatabaseOpt.getDBConnection();
+                DatabaseOpt.updateOne(conn, taskId, "taskName", newTaskName);
+                TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskDataGridView);
+
+            }
+            finally
+            {
+                DatabaseOpt.close(conn);
+                this.Dispose();
+            }
+
+
         }
     }
 }

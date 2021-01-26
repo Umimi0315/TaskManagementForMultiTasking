@@ -21,6 +21,12 @@ namespace TaskManagementForMultiTasking
         private string apkPath;
         private string appPackageName;
 
+        //该部分在创建任务对象后填写
+        private string emulationId;
+        private string emulationPort;
+        private string appiumPort;
+        private string socketPort;
+
         public TaskInfo()
         {
 
@@ -53,5 +59,9 @@ namespace TaskManagementForMultiTasking
         public string NationCode { get => nationCode; set => nationCode = value; }
         public string ApkPath { get => apkPath; set => apkPath = value; }
         public string AppPackageName { get => appPackageName; set => appPackageName = value; }
+        public string EmulationId { get => emulationId; set => emulationId = value; }
+        public string EmulationPort { get => emulationPort; set => emulationPort = value; }
+        public string AppiumPort { get => appiumPort; set => appiumPort = value; }
+        public string SocketPort { get => socketPort; set => socketPort = value; }
     }
 }

@@ -13,14 +13,23 @@ namespace TaskManagementForMultiTasking
     {
         public static void updateTaskInfoDataGridView(DataGridView taskInfoDataGridView)
         {
-            DataTable dt = (DataTable)taskInfoDataGridView.DataSource;
-            if (dt != null)
+            MySqlConnection conn = null;
+
+            try
             {
-                dt.Rows.Clear();
-                taskInfoDataGridView.DataSource = dt;
+                DataTable dt = (DataTable)taskInfoDataGridView.DataSource;
+                if (dt != null)
+                {
+                    dt.Rows.Clear();
+                    taskInfoDataGridView.DataSource = dt;
+                }
+                conn = DatabaseOpt.getDBConnection();
+                taskInfoDataGridView.DataSource = DatabaseOpt.queryAll(conn);
             }
-            MySqlConnection conn = DatabaseOpt.getDBConnection();
-            taskInfoDataGridView.DataSource = DatabaseOpt.queryAll(conn);
+            finally
+            {
+                DatabaseOpt.close(conn);
+            }
 
         }
     }

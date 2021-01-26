@@ -57,11 +57,33 @@ namespace TaskManagementForMultiTasking
                     //禁用右键菜单栏中的某些项
                     if ("激活".Equals(selectedTaskInfoDataGridViewRow.Cells["taskTag"].Value.ToString()))
                     {
+                        //激活
                         this.taskOptContextMenuStrip.Items["taskActiveToolStripMenuItem"].Enabled = false;
                     }
                     if (!"停止".Equals(selectedTaskInfoDataGridViewRow.Cells["taskStatus"].Value.ToString()))
                     {
+                        //修改任务
                         this.taskOptContextMenuStrip.Items["taskNameModifyToolStripMenuItem"].Enabled = false;
+                    }
+                    if ("停止".Equals(selectedTaskInfoDataGridViewRow.Cells["taskStatus"].Value.ToString()))
+                    {
+                        //停止任务
+                        this.taskOptContextMenuStrip.Items["taskStopToolStripMenuItem"].Enabled = false;
+                    }
+                    if (!("停止".Equals(selectedTaskInfoDataGridViewRow.Cells["taskStatus"].Value.ToString()) || "新建".Equals(selectedTaskInfoDataGridViewRow.Cells["taskStatus"].Value.ToString())))
+                    {
+                        //删除任务
+                        this.taskOptContextMenuStrip.Items["taskDeleteToolStripMenuItem"].Enabled = false;
+                    }
+                    if (!"已启动未控".Equals(selectedTaskInfoDataGridViewRow.Cells["taskStatus"].Value.ToString()))
+                    {
+                        //重新吸附
+                        this.taskOptContextMenuStrip.Items["reabsorptionToolStripMenuItem"].Enabled = false;
+                    }
+                    if ("已启动未控".Equals(selectedTaskInfoDataGridViewRow.Cells["taskStatus"].Value.ToString()) || "已启动已控".Equals(selectedTaskInfoDataGridViewRow.Cells["taskStatus"].Value.ToString())||"普通".Equals(selectedTaskInfoDataGridViewRow.Cells["taskTag"].Value.ToString()))
+                    {
+                        //启动任务
+                        this.taskOptContextMenuStrip.Items["taskStartToolStripMenuItem"].Enabled = false;
                     }
 
                     taskOptContextMenuStrip.Show(MousePosition.X, MousePosition.Y);
@@ -72,9 +94,6 @@ namespace TaskManagementForMultiTasking
         //修改任务
         private void taskNameModifyToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //判断条件
-
-
             //弹出激活窗口
             TaskNameModifyForm taskNameModifyForm = new TaskNameModifyForm(this.taskInfoDataGridView);
             taskNameModifyForm.ShowDialog();
@@ -83,42 +102,66 @@ namespace TaskManagementForMultiTasking
         //激活任务
         private void taskActiveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //判断条件
-            MySqlConnection conn=DatabaseOpt.getDBConnection();
-
-            List<string> taskIdList = DatabaseOpt.queryTaskTag(conn);
-            if (taskIdList.Count > 0)
+            MySqlConnection conn = null;
+            try
             {
-                //显示弹窗
-                ActiveConfirmForm activeConfirmForm = new ActiveConfirmForm(taskIdList);
-                activeConfirmForm.ShowDialog();
+                conn=DatabaseOpt.getDBConnection();
+                List<string> taskIdList = DatabaseOpt.queryTaskTag(conn);
+                if (taskIdList.Count > 0)
+                {
+                    //显示弹窗
+                    ActiveConfirmForm activeConfirmForm = new ActiveConfirmForm(taskIdList);
+                    activeConfirmForm.ShowDialog();
+                }
+
+                if (!taskIdList.Contains("cancel"))
+                {
+
+                    //激活任务代码
+                    //通知web端本条任务激活
+                    string phoneNumber = this.taskInfoDataGridView.CurrentRow.Cells["phoneNumber"].Value.ToString();
+                    string IMSI = this.taskInfoDataGridView.CurrentRow.Cells["IMSI"].Value.ToString();
+                    string nationCode = this.taskInfoDataGridView.CurrentRow.Cells["nationCode"].Value.ToString();
+
+                    string url = "http://47.96.5.240:8989/ghost/getVerificationCode?imsi="+IMSI+"&phone="+phoneNumber+"&phone_nation_code="+nationCode;
+                    string responseContent=WebServerCommunicate.httpGet(url);
+                    if (!"ok".Equals(responseContent))
+                    {
+                        MessageBox.Show("激活失败");
+                        return;
+                    }
+
+                    //修改任务标志
+                    string taskId = this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
+                    DatabaseOpt.updateOne(conn, taskId, "taskTag", "激活");
+
+                }
+            }catch(Exception)
+            {
+                MessageBox.Show("发生错误,激活失败");
             }
-
-            if (!taskIdList.Contains("cancel"))
+            finally
             {
-                //修改任务标志
-                string taskId = this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
-                DatabaseOpt.updateOne(conn, taskId, "taskTag", "激活");
-                //激活任务代码
-
-
-
                 DatabaseOpt.close(conn);
+                TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
             }
-            TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
-
         }
 
-        //任务开始
+        //启动任务
         private void taskStartToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            //选中任务的id
+            string taskId = this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
+            MySqlConnection conn=DatabaseOpt.getDBConnection();
+
 
         }
 
-        //任务停止
+        //停止任务
         private void taskStopToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //判断条件
+            //获取本模拟器的编号通过命令行停止,关闭appium和socket连接
+
 
 
             //修改任务状态和任务标志
@@ -130,10 +173,10 @@ namespace TaskManagementForMultiTasking
             TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
         }
 
-        //任务删除
+        //删除任务
         private void taskDeleteToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //判断条件
+            //获取本模拟器的编号并通过命令行删除,关闭appium和socket连接
 
 
             //删除该条任务信息

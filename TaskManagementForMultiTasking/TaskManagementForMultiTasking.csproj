@@ -78,6 +78,7 @@
     <Compile Include="TaskNameModifyForm.Designer.cs">
       <DependentUpon>TaskNameModifyForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="WebServerCommunicate.cs" />
     <EmbeddedResource Include="ActiveConfirmForm.resx">
       <DependentUpon>ActiveConfirmForm.cs</DependentUpon>
     </EmbeddedResource>

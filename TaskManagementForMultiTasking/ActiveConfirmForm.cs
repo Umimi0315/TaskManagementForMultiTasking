@@ -20,7 +20,6 @@ namespace TaskManagementForMultiTasking
             this.taskIdList = taskIdList;
         }
 
-
         //否按钮
         private void cancelBtn_Click(object sender, EventArgs e)
         {

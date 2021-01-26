@@ -23,59 +23,67 @@ namespace TaskManagementForMultiTasking
         //创建任务按钮
         private void taskCreateBtn_Click(object sender, EventArgs e)
         {
-            if (appNameListView.SelectedItems.Count != 1)
+            MySqlConnection conn = null;
+
+            try
             {
-                MessageBox.Show("请选择一个待执行的APP");
-                return;
+                if (appNameListView.SelectedItems.Count != 1)
+                {
+                    MessageBox.Show("请选择一个待执行的APP");
+                    return;
+                }
+
+                if ("".Equals(apkPathTextBox.Text))
+                {
+                    MessageBox.Show("APK安装路径不能为空");
+                    return;
+                }
+
+                if ("".Equals(taskNameText.Text))
+                {
+                    MessageBox.Show("任务名不能为空");
+                    return;
+                }
+                if ("".Equals(IMSIText.Text))
+                {
+                    MessageBox.Show("IMSI不能为空");
+                    return;
+                }
+                if ("".Equals(phoneNumberText.Text))
+                {
+                    MessageBox.Show("手机号不能为空");
+                    return;
+                }
+                if ("".Equals(nationCodeTextBox.Text))
+                {
+                    MessageBox.Show("国家编码不能为空");
+                    return;
+                }
+
+                string appName = appNameListView.SelectedItems[0].Text;
+                string apkPath = apkPathTextBox.Text;
+                apkPath = apkPath.Replace(@"\",@"\\");
+                string taskName = taskNameText.Text;
+                string IMSI = IMSIText.Text;
+                string phoneNumber = phoneNumberText.Text;
+                string nationCode = nationCodeTextBox.Text;
+
+                string taskCreateTime = DateTime.Now.ToString();
+                string appPackageName = appNameListView.SelectedItems[0].Tag.ToString();
+
+                TaskInfo taskInfo = new TaskInfo(taskName,phoneNumber,IMSI,nationCode,appName,taskCreateTime,"新建","普通",apkPath,appPackageName,"无");
+                
+                conn= DatabaseOpt.getDBConnection();
+                DatabaseOpt.insertOne(conn, taskInfo);
+                
+                TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(taskInfoDataGridView);
+            }
+            finally
+            {
+                DatabaseOpt.close(conn);
+                this.Dispose();
             }
 
-            if ("".Equals(apkPathTextBox.Text))
-            {
-                MessageBox.Show("APK安装路径不能为空");
-                return;
-            }
-
-            if ("".Equals(taskNameText.Text))
-            {
-                MessageBox.Show("任务名不能为空");
-                return;
-            }
-            if ("".Equals(IMSIText.Text))
-            {
-                MessageBox.Show("IMSI不能为空");
-                return;
-            }
-            if ("".Equals(phoneNumberText.Text))
-            {
-                MessageBox.Show("手机号不能为空");
-                return;
-            }
-            if ("".Equals(nationCodeTextBox.Text))
-            {
-                MessageBox.Show("国家编码不能为空");
-                return;
-            }
-
-            string appName = appNameListView.SelectedItems[0].Text;
-            string apkPath = apkPathTextBox.Text;
-            apkPath = apkPath.Replace(@"\",@"\\");
-            string taskName = taskNameText.Text;
-            string IMSI = IMSIText.Text;
-            string phoneNumber = phoneNumberText.Text;
-            string nationCode = nationCodeTextBox.Text;
-
-            string taskCreateTime = DateTime.Now.ToString();
-            string appPackageName = appNameListView.SelectedItems[0].Tag.ToString();
-
-            TaskInfo taskInfo = new TaskInfo(taskName,phoneNumber,IMSI,nationCode,appName,taskCreateTime,"新建","普通",apkPath,appPackageName,"无");
-
-            MySqlConnection conn= DatabaseOpt.getDBConnection();
-            DatabaseOpt.insertOne(conn, taskInfo);
-            DatabaseOpt.close(conn);
-
-            TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(taskInfoDataGridView);
-
-            this.Dispose();
 
         }
 
