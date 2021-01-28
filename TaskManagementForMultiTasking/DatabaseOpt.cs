@@ -104,6 +104,22 @@ namespace TaskManagementForMultiTasking
             return taskIdList;
         }
 
+        //查询某条任务信息某个字段的值
+        public static List<string> queryOne(MySqlConnection conn,string taskId,string fieldName)
+        {
+            List<string> taskFieldValueList = new List<string>();
+            string sql = "select "+fieldName+ " from task_info_table where taskId="+taskId;
+            MySqlCommand command = new MySqlCommand(sql, conn);
+            MySqlDataReader reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                string taskFieldValue = reader[fieldName].ToString();
+                taskFieldValueList.Add(taskFieldValue);
+            }
+            reader.Close();
+            return taskFieldValueList;
+        }
+
 
     }
 }

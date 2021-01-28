@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
@@ -14,6 +15,11 @@ namespace TaskManagementForMultiTasking
 {
     public partial class TaskManageForm : Form
     {
+        //jar包路径
+        private string appiumProject_jarPath = Application.StartupPath + "\\jar\\AppiumForSmartHome.jar";
+        //方法映射文件位置
+        private string methodsMapping_Path = Application.StartupPath + "\\MethodMapping\\MethodsMapping.xml";
+
         public TaskManageForm()
         {
             InitializeComponent();
@@ -150,11 +156,9 @@ namespace TaskManagementForMultiTasking
         //启动任务
         private void taskStartToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //选中任务的id
-            string taskId = this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
-            MySqlConnection conn=DatabaseOpt.getDBConnection();
-
-
+            //开启线程运行启动任务的实现方法
+            Thread extrationThread = new Thread(new ParameterizedThreadStart(taskStart));
+            extrationThread.Start(this.taskInfoDataGridView.CurrentRow);
         }
 
         //停止任务
@@ -201,5 +205,148 @@ namespace TaskManagementForMultiTasking
             DatabaseOpt.close(conn);
             TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
         }
+
+
+        //将待测APP名与取证主函数名对应
+        public string MethodMapping(string itemName)
+        {
+            XmlDocument document = new XmlDocument();
+            document.Load(methodsMapping_Path);
+            XmlNodeList xmlNodeList = document.SelectNodes("//MethodsMapping//MethodsMappingItem[ItemName='" + itemName + "']");
+            if (xmlNodeList.Count == 0)
+            {
+                return null;
+            }
+            return xmlNodeList[0].LastChild.InnerText;
+        }
+
+        //启动任务的实现方法
+        public void taskStart(Object row)
+        {
+            MySqlConnection conn = null;
+            int appiumPort = 0;
+
+            DataGridViewRow currentRow = (DataGridViewRow)row;
+
+            //选中任务的id
+            string taskId = currentRow.Cells["taskId"].Value.ToString();
+
+            MessageBox.Show(taskId);
+
+            try
+            {
+                conn = DatabaseOpt.getDBConnection();
+
+                List<string> emulatorIdList = DatabaseOpt.queryOne(conn, taskId, "emulatorId");
+                //说明该任务还没有创建模拟器
+                if ("".Equals(emulatorIdList[0]))
+                {
+                    //创建模拟器
+                    int emulatorId = EmulatiorOpt.createEmu();
+                    //计算端口号
+                    int emulatorPort = 21503 + emulatorId * 10;
+
+                    //将新建信息插入数据库
+                    DatabaseOpt.updateOne(conn, taskId, "emulatorId", emulatorId.ToString());
+                    DatabaseOpt.updateOne(conn, taskId, "emulatorPort", emulatorPort.ToString());
+                }
+
+                //获取当前任务的模拟器号和端口
+                string emulatorIdStr = DatabaseOpt.queryOne(conn, taskId, "emulatorId")[0];
+                string emulatorPortStr = DatabaseOpt.queryOne(conn, taskId, "emulatorPort")[0];
+
+                //启动模拟器
+                EmulatiorOpt.startEmu(emulatorIdStr);
+
+                //设置任务状态为已启动未控
+                DatabaseOpt.updateOne(conn, taskId, "taskStatus", "已启动未控");
+                TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
+
+                //执行安装APP
+
+
+
+
+
+
+
+                //执行启动appium,汇报任务进度
+                DatabaseOpt.updateOne(conn, taskId, "taskProgress", "正在初始化appium");
+                TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
+
+                appiumPort = AppiumOpt.getAvailablePort(4723, 65534);
+                //说明appium无可用端口
+                if (appiumPort == 0)
+                {
+                    //将该条任务在数据库中的appiumPort值置为""
+                    DatabaseOpt.updateOne(conn, taskId, "appiumPort", "");
+                    DatabaseOpt.updateOne(conn, taskId, "taskProgress", "appium无可用端口");
+                    TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
+                    return;
+                }
+                else
+                {
+                    //记录本次启动任务使用的appium端口号
+                    DatabaseOpt.updateOne(conn, taskId, "appiumPort", appiumPort.ToString());
+                }
+
+                //开启appium服务
+                AppiumOpt.callCmd("appium -a 127.0.0.1 -p " + appiumPort);
+
+                //睡眠5秒等待appium开启
+                Thread.Sleep(5000);
+
+                int socketPort = AppiumOpt.getAvailablePort(50000, 65534);
+                //说明socket无可用端口
+                if (socketPort == 0)
+                {
+                    //将该条任务在数据库中的socketPort值置为""
+                    DatabaseOpt.updateOne(conn, taskId, "socketPort", "");
+                    DatabaseOpt.updateOne(conn, taskId, "taskProgress", "socket通信无可用端口");
+                    TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
+                    return;
+                }
+                else
+                {
+                    //记录本次启动任务使用的socket端口号
+                    DatabaseOpt.updateOne(conn, taskId, "socketPort", socketPort.ToString());
+                }
+
+
+                //准备调用jar包所需要传入的参数
+                string appName = currentRow.Cells["appName"].Value.ToString();
+                string methodName = MethodMapping(appName);
+                string deviceName = "127.0.0.1:" + emulatorPortStr;
+
+                string IMSI = currentRow.Cells["IMSI"].Value.ToString();
+                string phoneNumber = currentRow.Cells["phoneNumber"].Value.ToString();
+                string nationCode = currentRow.Cells["nationCode"].Value.ToString();
+
+                //开启线程运行jar包
+                Thread extrationThread = new Thread(new ParameterizedThreadStart(AppiumOpt.callCmd));
+                extrationThread.Start("java -cp" + " " + @appiumProject_jarPath + " " + methodName + " " + "127.0.0.1 " + socketPort + " " + deviceName + " " + appiumPort + " " + IMSI + " " + phoneNumber + " " + nationCode);
+
+                //与客户端通信
+                AppiumOpt.communicate(socketPort, conn, taskId, this.taskInfoDataGridView);
+
+
+            }
+            finally
+            {
+                //关闭appium端口，清除该任务在数据库中存放的端口信息
+                if (appiumPort != 0)
+                {
+                    AppiumOpt.endAppium(appiumPort);
+                }
+                if (conn != null)
+                {
+                    DatabaseOpt.updateOne(conn, taskId, "appiumPort", "");
+                    DatabaseOpt.updateOne(conn, taskId, "socketPort", "");
+                }
+
+                DatabaseOpt.close(conn);
+            }
+        }
+
     }
 }

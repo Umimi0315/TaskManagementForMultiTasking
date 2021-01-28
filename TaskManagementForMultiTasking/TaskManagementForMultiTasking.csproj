@@ -36,6 +36,9 @@
     <Reference Include="MySql.Data">
       <HintPath>dll\MySql.Data.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>dll\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -55,7 +58,9 @@
     <Compile Include="ActiveConfirmForm.Designer.cs">
       <DependentUpon>ActiveConfirmForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="AppiumOpt.cs" />
     <Compile Include="DatabaseOpt.cs" />
+    <Compile Include="EmulatiorOpt.cs" />
     <Compile Include="TaskInfoDataGridViewOpt.cs" />
     <Compile Include="TaskManageForm.cs">
       <SubType>Form</SubType>
@@ -78,6 +83,7 @@
     <Compile Include="TaskNameModifyForm.Designer.cs">
       <DependentUpon>TaskNameModifyForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="TaskProgress.cs" />
     <Compile Include="WebServerCommunicate.cs" />
     <EmbeddedResource Include="ActiveConfirmForm.resx">
       <DependentUpon>ActiveConfirmForm.cs</DependentUpon>
