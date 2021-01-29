@@ -35,7 +35,7 @@ namespace TaskManagementForMultiTasking
                 conn.Open();
                 return conn;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 MessageBox.Show("数据库连接出错！");
             }

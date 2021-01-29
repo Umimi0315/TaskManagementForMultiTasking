@@ -164,46 +164,25 @@ namespace TaskManagementForMultiTasking
         //停止任务
         private void taskStopToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //获取本模拟器的编号通过命令行停止,关闭appium和socket连接
-
-
-
-            //修改任务状态和任务标志
-            string taskId=this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
-            MySqlConnection conn=DatabaseOpt.getDBConnection();
-            DatabaseOpt.updateOne(conn, taskId, "taskStatus", "停止");
-            DatabaseOpt.updateOne(conn, taskId, "taskTag", "普通");
-            DatabaseOpt.close(conn);
-            TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
+            //开启线程运行停止任务的实现方法
+            Thread extrationThread = new Thread(new ParameterizedThreadStart(taskStop));
+            extrationThread.Start(this.taskInfoDataGridView.CurrentRow);
         }
 
         //删除任务
         private void taskDeleteToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //获取本模拟器的编号并通过命令行删除,关闭appium和socket连接
-
-
-            //删除该条任务信息
-            string taskId=this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
-            MySqlConnection conn=DatabaseOpt.getDBConnection();
-            DatabaseOpt.deleteOne(conn,taskId);
-            DatabaseOpt.close(conn);
-            TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
-
+            //开启线程运行停止任务的实现方法
+            Thread extrationThread = new Thread(new ParameterizedThreadStart(taskDelete));
+            extrationThread.Start(this.taskInfoDataGridView.CurrentRow);
         }
 
         //重新吸附
         private void reabsorptionToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //判断条件
-
-
-            //修改任务标记
-            string taskId = this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
-            MySqlConnection conn=DatabaseOpt.getDBConnection();
-            DatabaseOpt.updateOne(conn, taskId, "taskTag", "激活");
-            DatabaseOpt.close(conn);
-            TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
+            //开启线程运行停止任务的实现方法
+            Thread extrationThread = new Thread(new ParameterizedThreadStart(reabsorption));
+            extrationThread.Start(this.taskInfoDataGridView.CurrentRow);
         }
 
 
@@ -231,11 +210,14 @@ namespace TaskManagementForMultiTasking
             //选中任务的id
             string taskId = currentRow.Cells["taskId"].Value.ToString();
 
-            MessageBox.Show(taskId);
 
             try
             {
                 conn = DatabaseOpt.getDBConnection();
+
+                //汇报任务进度
+                DatabaseOpt.updateOne(conn, taskId, "taskProgress", "正在准备启动任务");
+                TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
 
                 List<string> emulatorIdList = DatabaseOpt.queryOne(conn, taskId, "emulatorId");
                 //说明该任务还没有创建模拟器
@@ -286,15 +268,15 @@ namespace TaskManagementForMultiTasking
                 }
                 else
                 {
+                    //开启appium服务
+                    AppiumOpt.callCmd("appium -a 127.0.0.1 -p " + appiumPort);
+
+                    //睡眠5秒等待appium开启
+                    Thread.Sleep(5000);
+                    
                     //记录本次启动任务使用的appium端口号
                     DatabaseOpt.updateOne(conn, taskId, "appiumPort", appiumPort.ToString());
                 }
-
-                //开启appium服务
-                AppiumOpt.callCmd("appium -a 127.0.0.1 -p " + appiumPort);
-
-                //睡眠5秒等待appium开启
-                Thread.Sleep(5000);
 
                 int socketPort = AppiumOpt.getAvailablePort(50000, 65534);
                 //说明socket无可用端口
@@ -305,11 +287,6 @@ namespace TaskManagementForMultiTasking
                     DatabaseOpt.updateOne(conn, taskId, "taskProgress", "socket通信无可用端口");
                     TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
                     return;
-                }
-                else
-                {
-                    //记录本次启动任务使用的socket端口号
-                    DatabaseOpt.updateOne(conn, taskId, "socketPort", socketPort.ToString());
                 }
 
 
@@ -329,6 +306,14 @@ namespace TaskManagementForMultiTasking
                 //与客户端通信
                 AppiumOpt.communicate(socketPort, conn, taskId, this.taskInfoDataGridView);
 
+                //查询任务执行到最后时的任务进度
+                List<string> taskEndProgress = DatabaseOpt.queryOne(conn, taskId, "taskProgress");
+                if (taskEndProgress[0].Contains("登录完成"))
+                {
+                    //说明正常登录,将任务状态置为已启动已控
+                    DatabaseOpt.updateOne(conn, taskId, "taskStatus", "已启动已控");
+                    TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
+                }
 
             }
             finally
@@ -346,6 +331,175 @@ namespace TaskManagementForMultiTasking
 
                 DatabaseOpt.close(conn);
             }
+        }
+
+
+        //停止任务的实现方法
+        public void taskStop(Object row)
+        {
+            MySqlConnection conn = null;
+            try
+            {
+                DataGridViewRow currentRow = (DataGridViewRow)row;
+                string taskId = currentRow.Cells["taskId"].Value.ToString();
+                conn = DatabaseOpt.getDBConnection();
+
+                //获取本模拟器的编号通过命令行停止,关闭appium和socket连接
+                string emulatorId = DatabaseOpt.queryOne(conn, taskId, "emulatorId")[0];
+                if (!"".Equals(emulatorId))
+                {
+                    //说明模拟器编号不为空,执行关闭模拟器操作
+                    EmulatiorOpt.shutdownEmu(emulatorId);
+                }
+                string appiumPort = DatabaseOpt.queryOne(conn, taskId, "appiumPort")[0];
+                if (!"".Equals(appiumPort))
+                {
+                    //说明appium端口不为空
+                    AppiumOpt.endAppium(int.Parse(appiumPort));
+                }
+                string socketPort = DatabaseOpt.queryOne(conn, taskId, "socketPort")[0];
+                if (!"".Equals(socketPort))
+                {
+                    //说明socket端口不为空
+                    AppiumOpt.endAppium(int.Parse(socketPort));
+                }
+
+                //修改任务状态和任务标志 
+                DatabaseOpt.updateOne(conn, taskId, "taskStatus", "停止");
+                DatabaseOpt.updateOne(conn, taskId, "taskTag", "普通");
+
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("任务停止出错");
+            }
+            finally
+            {
+                DatabaseOpt.close(conn);
+                TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
+            }
+        }
+
+        //删除任务的实现方法
+        public void taskDelete(Object row)
+        {
+            MySqlConnection conn = null;
+            try
+            {
+                //获取本模拟器的编号并通过命令行删除
+                DataGridViewRow currentRow = (DataGridViewRow)row;
+                string taskId = currentRow.Cells["taskId"].Value.ToString();
+                conn = DatabaseOpt.getDBConnection();
+                string emulatorId = DatabaseOpt.queryOne(conn, taskId, "emulatorId")[0];
+                if (!"".Equals(emulatorId))
+                {
+                    //说明模拟器已创建，通过命令行删除
+                    EmulatiorOpt.removeEmu(emulatorId);
+                }
+
+                //删除该条任务信息
+                DatabaseOpt.deleteOne(conn, taskId);
+            }
+            catch
+            {
+                MessageBox.Show("删除任务出错");
+            }
+            finally
+            {
+                DatabaseOpt.close(conn);
+                TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
+            }
+        }
+
+        //重新吸附任务的实现方法
+        public void reabsorption(Object row)
+        {
+            MySqlConnection conn = null;
+
+            try
+            {
+                DataGridViewRow currentRow = (DataGridViewRow)row;
+                conn = DatabaseOpt.getDBConnection();
+                string taskId = currentRow.Cells["taskId"].Value.ToString();
+                //查询已激活的任务
+                string activeTaskId = DatabaseOpt.queryTaskTag(conn)[0];
+                if (!"".Equals(activeTaskId))
+                {
+                    //已有任务被激活
+                    if (!taskId.Equals(activeTaskId))
+                    {
+                        //说明当前激活的任务与重新吸附的任务不同，需要停止其模拟器
+                        string activeTaskEmulatorId = DatabaseOpt.queryOne(conn, activeTaskId, "emulatorId")[0];
+                        //停止模拟器
+                        EmulatiorOpt.shutdownEmu(activeTaskId);
+                    }
+                    //关闭当前激活任务的appium
+                    string activeTaskAppiumPort = DatabaseOpt.queryOne(conn, activeTaskId, "appiumPort")[0];
+                    if (!"".Equals(activeTaskAppiumPort))
+                    {
+                        //关闭appium
+                        AppiumOpt.endAppium(int.Parse(activeTaskAppiumPort));
+                        //将appium端口置空
+                        DatabaseOpt.updateOne(conn, activeTaskId, "appiumPort", "");
+                    }
+                    //关闭socket
+                    string activeTaskSocketPort = DatabaseOpt.queryOne(conn, activeTaskId, "socketPort")[0];
+                    if (!"".Equals(activeTaskSocketPort))
+                    {
+                        //关闭socket
+                        AppiumOpt.endAppium(int.Parse(activeTaskSocketPort));
+                        //将socket端口置空
+                        DatabaseOpt.updateOne(conn, activeTaskId, "socketPort", "");
+                    }
+
+                    //置之前激活的任务标志为普通
+                    DatabaseOpt.updateOne(conn, activeTaskId, "taskTag", "普通");
+                    TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
+                }
+
+                //获取重新吸附任务的appium端口
+                string appiumPort = DatabaseOpt.queryOne(conn, taskId, "appiumPort")[0];
+                if (!"".Equals(appiumPort))
+                {
+                    //关闭之前的appium
+                    AppiumOpt.endAppium(int.Parse(appiumPort));
+                    //将appium端口置空
+                    DatabaseOpt.updateOne(conn, taskId, "appiumPort", "");
+                }
+                string socketPort = DatabaseOpt.queryOne(conn, taskId, "socketPort")[0];
+                if (!"".Equals(socketPort))
+                {
+                    //关闭之前的socket
+                    AppiumOpt.endAppium(int.Parse(socketPort));
+                    //将socket端口置空
+                    DatabaseOpt.updateOne(conn, taskId, "socketPort", "");
+                }
+
+                //激活任务代码
+                //通知web端本条任务激活
+                string phoneNumber = currentRow.Cells["phoneNumber"].Value.ToString();
+                string IMSI = currentRow.Cells["IMSI"].Value.ToString();
+                string nationCode = currentRow.Cells["nationCode"].Value.ToString();
+
+                string url = "http://47.96.5.240:8989/ghost/getVerificationCode?imsi=" + IMSI + "&phone=" + phoneNumber + "&phone_nation_code=" + nationCode;
+                string responseContent = WebServerCommunicate.httpGet(url);
+                if (!"ok".Equals(responseContent))
+                {
+                    MessageBox.Show("激活失败");
+                    return;
+                }
+                //修改任务标记为激活
+                DatabaseOpt.updateOne(conn, taskId, "taskTag", "激活");
+                TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
+
+                //启动任务代码
+                taskStart(currentRow);
+            }
+            finally
+            {
+                DatabaseOpt.close(conn);
+            }
+
         }
 
     }
