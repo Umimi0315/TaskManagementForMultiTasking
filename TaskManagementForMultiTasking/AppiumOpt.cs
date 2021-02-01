@@ -166,7 +166,7 @@ namespace TaskManagementForMultiTasking
                             taskProgress.STATUS_TEXT = (string)contentJObject["STATUS_TEXT"];
 
                             //更新任务进度
-                            DatabaseOpt.updateOne(conn, taskId, "taskStatus", taskProgress.STATUS_TEXT);
+                            DatabaseOpt.updateOne(conn, taskId, "taskProgress", taskProgress.STATUS_TEXT);
                             TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(taskInfoDataGridView);
                         
                         }

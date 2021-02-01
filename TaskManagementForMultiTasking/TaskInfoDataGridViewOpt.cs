@@ -25,6 +25,7 @@ namespace TaskManagementForMultiTasking
                 }
                 conn = DatabaseOpt.getDBConnection();
                 taskInfoDataGridView.DataSource = DatabaseOpt.queryAll(conn);
+                taskInfoDataGridView.Refresh();
             }
             finally
             {

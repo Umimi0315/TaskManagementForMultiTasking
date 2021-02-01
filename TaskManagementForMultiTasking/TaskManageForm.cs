@@ -23,7 +23,7 @@ namespace TaskManagementForMultiTasking
         public TaskManageForm()
         {
             InitializeComponent();
-            this.taskInfoDataGridView.AutoGenerateColumns = true;
+            this.taskInfoDataGridView.AutoGenerateColumns = false;
             TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
         }
 
@@ -129,7 +129,7 @@ namespace TaskManagementForMultiTasking
                     string IMSI = this.taskInfoDataGridView.CurrentRow.Cells["IMSI"].Value.ToString();
                     string nationCode = this.taskInfoDataGridView.CurrentRow.Cells["nationCode"].Value.ToString();
 
-                    string url = "http://47.96.5.240:8989/ghost/getVerificationCode?imsi="+IMSI+"&phone="+phoneNumber+"&phone_nation_code="+nationCode;
+                    string url = "http://127.0.0.1:8989/ghost/getVerificationCode?imsi="+IMSI+"&phone="+phoneNumber+"&phone_nation_code="+nationCode;
                     string responseContent=WebServerCommunicate.httpGet(url);
                     if (!"ok".Equals(responseContent))
                     {
@@ -209,6 +209,10 @@ namespace TaskManagementForMultiTasking
 
             //选中任务的id
             string taskId = currentRow.Cells["taskId"].Value.ToString();
+/*            string appName= currentRow.Cells["appName"].Value.ToString();
+            string IMSI= currentRow.Cells["IMSI"].Value.ToString();
+            string phoneNumber= currentRow.Cells["phoneNumber"].Value.ToString();
+            string nationCode= currentRow.Cells["nationCode"].Value.ToString();*/
 
 
             try
@@ -244,12 +248,18 @@ namespace TaskManagementForMultiTasking
                 DatabaseOpt.updateOne(conn, taskId, "taskStatus", "已启动未控");
                 TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
 
+                //睡眠10秒等待模拟器启动完成
+                Thread.Sleep(10000);
+
                 //执行安装APP
 
+                //汇报任务进度
+                DatabaseOpt.updateOne(conn, taskId, "taskProgress", "正在安装APP");
+                TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
 
+                string apkPath = DatabaseOpt.queryOne(conn, taskId, "apkPath")[0];
 
-
-
+                EmulatiorOpt.installApp(int.Parse(emulatorIdStr), apkPath);
 
 
                 //执行启动appium,汇报任务进度
@@ -289,15 +299,19 @@ namespace TaskManagementForMultiTasking
                     return;
                 }
 
+                //防止没有连上模拟器
+                AppiumOpt.callCmd("adb connect 127.0.0.1:" + emulatorPortStr);
+                Thread.Sleep(3000);
 
                 //准备调用jar包所需要传入的参数
-                string appName = currentRow.Cells["appName"].Value.ToString();
+
+                string appName = DatabaseOpt.queryOne(conn, taskId, "appName")[0];
                 string methodName = MethodMapping(appName);
                 string deviceName = "127.0.0.1:" + emulatorPortStr;
 
-                string IMSI = currentRow.Cells["IMSI"].Value.ToString();
-                string phoneNumber = currentRow.Cells["phoneNumber"].Value.ToString();
-                string nationCode = currentRow.Cells["nationCode"].Value.ToString();
+                string IMSI = DatabaseOpt.queryOne(conn, taskId, "IMSI")[0];
+                string phoneNumber = DatabaseOpt.queryOne(conn, taskId, "phoneNumber")[0];
+                string nationCode = DatabaseOpt.queryOne(conn, taskId, "nationCode")[0];
 
                 //开启线程运行jar包
                 Thread extrationThread = new Thread(new ParameterizedThreadStart(AppiumOpt.callCmd));
@@ -481,7 +495,7 @@ namespace TaskManagementForMultiTasking
                 string IMSI = currentRow.Cells["IMSI"].Value.ToString();
                 string nationCode = currentRow.Cells["nationCode"].Value.ToString();
 
-                string url = "http://47.96.5.240:8989/ghost/getVerificationCode?imsi=" + IMSI + "&phone=" + phoneNumber + "&phone_nation_code=" + nationCode;
+                string url = "http://127.0.0.1:8989/ghost/getVerificationCode?imsi=" + IMSI + "&phone=" + phoneNumber + "&phone_nation_code=" + nationCode;
                 string responseContent = WebServerCommunicate.httpGet(url);
                 if (!"ok".Equals(responseContent))
                 {
@@ -502,5 +516,9 @@ namespace TaskManagementForMultiTasking
 
         }
 
+        private void TaskManageForm_Load(object sender, EventArgs e)
+        {
+            Control.CheckForIllegalCrossThreadCalls = false;
+        }
     }
 }

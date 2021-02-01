@@ -66,6 +66,36 @@ namespace TaskManagementForMultiTasking
             doCreateEmu();
             return pre + 1;
         }
+        //在对应的模拟器上安装APP，如果已经安装过的话就直接不执行操作
+        //1.模拟器索引   2.apk路径  
+        public static bool installApp(int EmuIndex, string apkPath)
+        {
+            //先组装主机名
+            string hostname = "127.0.0.1:" + (21503 + 10 * EmuIndex);
+            List<string> connRet = hasReturnCmd("adb connect " + hostname);
+            bool isOut = true;
+            for (int i = 0; i < connRet.Count; i++)
+            {
+                if (connRet[i].Contains("connected to " + hostname))
+                {
+                    isOut = false;
+                }
+            }
+            if (isOut) //return "未能连接到对应模拟器";
+                return false;
+            //       string searchCmd = "adb -s " + hostname + " shell pm list packages " + appPackageName;
+            //       List<string> checkRet=hasReturnCmd(searchCmd);
+            //       for (int i=0;i<checkRet.Count;i++)
+            //       {
+            //          if (checkRet[i].Contains("package:"+appPackageName))
+            //           {
+            //               return "app已安装";
+            //           }
+            //       }
+            noReturnCmd("adb -s " + hostname + " install " + apkPath);
+            //return "安装成功";
+            return true;
+        }
         private static void doCreateEmu()
         {
             noReturnCmd("memuc create 71");
@@ -88,7 +118,6 @@ namespace TaskManagementForMultiTasking
         public static List<string> hasReturnCmd(string cmd)
         {
             List<string> list = new List<string>();
-
             Process p = new Process();
             p.StartInfo.FileName = "cmd.exe";
             p.StartInfo.UseShellExecute = false;
@@ -109,6 +138,8 @@ namespace TaskManagementForMultiTasking
                 list.Add(strLine);
                 strLine = reader.ReadLine();
             }
+            //p.Close();
+            //p.Dispose();
             return list;
         }
     }
