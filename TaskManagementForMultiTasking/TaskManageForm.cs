@@ -63,7 +63,7 @@ namespace TaskManagementForMultiTasking
                     //禁用右键菜单栏中的某些项
                     if ("激活".Equals(selectedTaskInfoDataGridViewRow.Cells["taskTag"].Value.ToString()))
                     {
-                        //激活
+                        //激活任务
                         this.taskOptContextMenuStrip.Items["taskActiveToolStripMenuItem"].Enabled = false;
                     }
                     if (!"停止".Equals(selectedTaskInfoDataGridViewRow.Cells["taskStatus"].Value.ToString()))
@@ -109,6 +109,7 @@ namespace TaskManagementForMultiTasking
         private void taskActiveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MySqlConnection conn = null;
+            string taskId = this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
             try
             {
                 conn=DatabaseOpt.getDBConnection();
@@ -138,7 +139,6 @@ namespace TaskManagementForMultiTasking
                     }
 
                     //修改任务标志
-                    string taskId = this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
                     DatabaseOpt.updateOne(conn, taskId, "taskTag", "激活");
 
                 }
@@ -156,33 +156,47 @@ namespace TaskManagementForMultiTasking
         //启动任务
         private void taskStartToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            //获取被选中任务的id
+            string taskId = this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
+            
             //开启线程运行启动任务的实现方法
             Thread extrationThread = new Thread(new ParameterizedThreadStart(taskStart));
-            extrationThread.Start(this.taskInfoDataGridView.CurrentRow);
+            extrationThread.Start(taskId);
         }
 
         //停止任务
         private void taskStopToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //开启线程运行停止任务的实现方法
-            Thread extrationThread = new Thread(new ParameterizedThreadStart(taskStop));
-            extrationThread.Start(this.taskInfoDataGridView.CurrentRow);
+            //获取被选中任务的id
+            string taskId = this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
+
+            /*            //开启线程运行停止任务的实现方法
+                        Thread extrationThread = new Thread(new ParameterizedThreadStart(taskStop));
+                        extrationThread.Start(taskId);*/
+            taskStop(taskId);
         }
 
         //删除任务
         private void taskDeleteToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //开启线程运行停止任务的实现方法
-            Thread extrationThread = new Thread(new ParameterizedThreadStart(taskDelete));
-            extrationThread.Start(this.taskInfoDataGridView.CurrentRow);
+            //获取被选中任务的id
+            string taskId = this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
+
+            /*            //开启线程运行停止任务的实现方法
+                        Thread extrationThread = new Thread(new ParameterizedThreadStart(taskDelete));
+                        extrationThread.Start(taskId);*/
+            taskDelete(taskId);
         }
 
         //重新吸附
         private void reabsorptionToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            //获取被选中任务的id
+            string taskId = this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
+
             //开启线程运行停止任务的实现方法
             Thread extrationThread = new Thread(new ParameterizedThreadStart(reabsorption));
-            extrationThread.Start(this.taskInfoDataGridView.CurrentRow);
+            extrationThread.Start(taskId);
         }
 
 
@@ -200,20 +214,13 @@ namespace TaskManagementForMultiTasking
         }
 
         //启动任务的实现方法
-        public void taskStart(Object row)
+        public void taskStart(Object id)
         {
             MySqlConnection conn = null;
             int appiumPort = 0;
 
-            DataGridViewRow currentRow = (DataGridViewRow)row;
-
             //选中任务的id
-            string taskId = currentRow.Cells["taskId"].Value.ToString();
-/*            string appName= currentRow.Cells["appName"].Value.ToString();
-            string IMSI= currentRow.Cells["IMSI"].Value.ToString();
-            string phoneNumber= currentRow.Cells["phoneNumber"].Value.ToString();
-            string nationCode= currentRow.Cells["nationCode"].Value.ToString();*/
-
+            string taskId = (string)id;
 
             try
             {
@@ -259,8 +266,8 @@ namespace TaskManagementForMultiTasking
 
                 string apkPath = DatabaseOpt.queryOne(conn, taskId, "apkPath")[0];
 
+                //APP安装函数
                 EmulatiorOpt.installApp(int.Parse(emulatorIdStr), apkPath);
-
 
                 //执行启动appium,汇报任务进度
                 DatabaseOpt.updateOne(conn, taskId, "taskProgress", "正在初始化appium");
@@ -304,7 +311,6 @@ namespace TaskManagementForMultiTasking
                 Thread.Sleep(3000);
 
                 //准备调用jar包所需要传入的参数
-
                 string appName = DatabaseOpt.queryOne(conn, taskId, "appName")[0];
                 string methodName = MethodMapping(appName);
                 string deviceName = "127.0.0.1:" + emulatorPortStr;
@@ -349,13 +355,13 @@ namespace TaskManagementForMultiTasking
 
 
         //停止任务的实现方法
-        public void taskStop(Object row)
+        public void taskStop(Object id)
         {
             MySqlConnection conn = null;
+            string taskId = (string)id;
+
             try
             {
-                DataGridViewRow currentRow = (DataGridViewRow)row;
-                string taskId = currentRow.Cells["taskId"].Value.ToString();
                 conn = DatabaseOpt.getDBConnection();
 
                 //获取本模拟器的编号通过命令行停止,关闭appium和socket连接
@@ -395,14 +401,14 @@ namespace TaskManagementForMultiTasking
         }
 
         //删除任务的实现方法
-        public void taskDelete(Object row)
+        public void taskDelete(Object id)
         {
             MySqlConnection conn = null;
+            string taskId = (string)id;
+
             try
             {
                 //获取本模拟器的编号并通过命令行删除
-                DataGridViewRow currentRow = (DataGridViewRow)row;
-                string taskId = currentRow.Cells["taskId"].Value.ToString();
                 conn = DatabaseOpt.getDBConnection();
                 string emulatorId = DatabaseOpt.queryOne(conn, taskId, "emulatorId")[0];
                 if (!"".Equals(emulatorId))
@@ -426,15 +432,15 @@ namespace TaskManagementForMultiTasking
         }
 
         //重新吸附任务的实现方法
-        public void reabsorption(Object row)
+        public void reabsorption(Object id)
         {
             MySqlConnection conn = null;
+            string taskId = (string)id;
 
             try
             {
-                DataGridViewRow currentRow = (DataGridViewRow)row;
                 conn = DatabaseOpt.getDBConnection();
-                string taskId = currentRow.Cells["taskId"].Value.ToString();
+
                 //查询已激活的任务
                 string activeTaskId = DatabaseOpt.queryTaskTag(conn)[0];
                 if (!"".Equals(activeTaskId))
@@ -491,9 +497,9 @@ namespace TaskManagementForMultiTasking
 
                 //激活任务代码
                 //通知web端本条任务激活
-                string phoneNumber = currentRow.Cells["phoneNumber"].Value.ToString();
-                string IMSI = currentRow.Cells["IMSI"].Value.ToString();
-                string nationCode = currentRow.Cells["nationCode"].Value.ToString();
+                string phoneNumber = DatabaseOpt.queryOne(conn,taskId,"phoneNumber")[0];
+                string IMSI = DatabaseOpt.queryOne(conn,taskId,"IMSI")[0];
+                string nationCode = DatabaseOpt.queryOne(conn,taskId,"nationCode")[0];
 
                 string url = "http://127.0.0.1:8989/ghost/getVerificationCode?imsi=" + IMSI + "&phone=" + phoneNumber + "&phone_nation_code=" + nationCode;
                 string responseContent = WebServerCommunicate.httpGet(url);
@@ -506,8 +512,8 @@ namespace TaskManagementForMultiTasking
                 DatabaseOpt.updateOne(conn, taskId, "taskTag", "激活");
                 TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
 
-                //启动任务代码
-                taskStart(currentRow);
+                //启动任务函数
+                taskStart(taskId);
             }
             finally
             {
@@ -518,6 +524,7 @@ namespace TaskManagementForMultiTasking
 
         private void TaskManageForm_Load(object sender, EventArgs e)
         {
+            //关闭检查非UI线程调用控件
             Control.CheckForIllegalCrossThreadCalls = false;
         }
     }

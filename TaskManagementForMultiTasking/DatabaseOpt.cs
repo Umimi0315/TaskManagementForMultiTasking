@@ -14,6 +14,7 @@ namespace TaskManagementForMultiTasking
     {
         private static string dbconfigPath= Application.StartupPath + "\\config\\dbconfig.xml";
 
+        //获取数据库连接
         public static MySqlConnection getDBConnection()
         {
             XmlDocument dbconfigDoc = new XmlDocument();
@@ -43,6 +44,7 @@ namespace TaskManagementForMultiTasking
             return null;
         }
 
+        //关闭数据库连接
         public static void close(MySqlConnection conn)
         {
             if (conn != null)
@@ -91,35 +93,55 @@ namespace TaskManagementForMultiTasking
         //查询标志为激活的任务id
         public static List<string> queryTaskTag(MySqlConnection conn)
         {
-            List<string> taskIdList = new List<string>();
-            string sql = "select taskId from task_info_table where taskTag='激活'";
-            MySqlCommand command = new MySqlCommand(sql, conn);
-            MySqlDataReader reader = command.ExecuteReader();
-            while (reader.Read())
+            MySqlDataReader reader = null;
+            try
             {
-                string taskId = reader["taskId"].ToString();
-                taskIdList.Add(taskId);
+                List<string> taskIdList = new List<string>();
+                string sql = "select taskId from task_info_table where taskTag='激活'";
+                MySqlCommand command = new MySqlCommand(sql, conn);
+                reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    string taskId = reader["taskId"].ToString();
+                    taskIdList.Add(taskId);
+                }
+                return taskIdList;
             }
-            reader.Close();
-            return taskIdList;
+            finally
+            {
+                if (reader != null)
+                {
+                    reader.Close();
+                }
+            }
+
         }
 
         //查询某条任务信息某个字段的值
         public static List<string> queryOne(MySqlConnection conn,string taskId,string fieldName)
         {
-            List<string> taskFieldValueList = new List<string>();
-            string sql = "select "+fieldName+ " from task_info_table where taskId="+taskId;
-            MySqlCommand command = new MySqlCommand(sql, conn);
-            MySqlDataReader reader = command.ExecuteReader();
-            while (reader.Read())
+            MySqlDataReader reader = null;
+            try
             {
-                string taskFieldValue = reader[fieldName].ToString();
-                taskFieldValueList.Add(taskFieldValue);
+                List<string> taskFieldValueList = new List<string>();
+                string sql = "select "+fieldName+ " from task_info_table where taskId="+taskId;
+                MySqlCommand command = new MySqlCommand(sql, conn);
+                reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    string taskFieldValue = reader[fieldName].ToString();
+                    taskFieldValueList.Add(taskFieldValue);
+                }
+                return taskFieldValueList;
             }
-            reader.Close();
-            return taskFieldValueList;
+            finally
+            {
+                if (reader != null)
+                {
+                    reader.Close();
+                }
+            }
         }
-
 
     }
 }

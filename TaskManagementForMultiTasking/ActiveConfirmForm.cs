@@ -61,6 +61,7 @@ namespace TaskManagementForMultiTasking
                     }
 
                     DatabaseOpt.updateOne(conn, taskId, "taskTag", "普通");
+                    DatabaseOpt.updateOne(conn, taskId, "taskStatus", "停止");
                 }
             }
             finally
