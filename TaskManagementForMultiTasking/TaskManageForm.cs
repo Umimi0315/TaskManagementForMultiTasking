@@ -22,6 +22,12 @@ namespace TaskManagementForMultiTasking
 
         public TaskManageForm()
         {
+            if (!available())
+            {
+                this.Dispose();
+                return;
+            }
+
             InitializeComponent();
             this.taskInfoDataGridView.AutoGenerateColumns = false;
             TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
@@ -130,7 +136,7 @@ namespace TaskManagementForMultiTasking
                     string IMSI = this.taskInfoDataGridView.CurrentRow.Cells["IMSI"].Value.ToString();
                     string nationCode = this.taskInfoDataGridView.CurrentRow.Cells["nationCode"].Value.ToString();
 
-                    string url = "http://127.0.0.1:8989/ghost/getVerificationCode?imsi="+IMSI+"&phone="+phoneNumber+"&phone_nation_code="+nationCode;
+                    string url = "http://192.168.17.232:8989/ghost/getVerificationCode?imsi=" + IMSI+"&phone="+phoneNumber+"&phone_nation_code="+nationCode;
                     string responseContent=WebServerCommunicate.httpGet(url);
                     if (!"ok".Equals(responseContent))
                     {
@@ -170,9 +176,9 @@ namespace TaskManagementForMultiTasking
             //获取被选中任务的id
             string taskId = this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
 
-            /*            //开启线程运行停止任务的实现方法
-                        Thread extrationThread = new Thread(new ParameterizedThreadStart(taskStop));
-                        extrationThread.Start(taskId);*/
+            //开启线程运行停止任务的实现方法
+            Thread extrationThread = new Thread(new ParameterizedThreadStart(taskStop));
+            extrationThread.Start(taskId);
             taskStop(taskId);
         }
 
@@ -182,9 +188,9 @@ namespace TaskManagementForMultiTasking
             //获取被选中任务的id
             string taskId = this.taskInfoDataGridView.CurrentRow.Cells["taskId"].Value.ToString();
 
-            /*            //开启线程运行停止任务的实现方法
-                        Thread extrationThread = new Thread(new ParameterizedThreadStart(taskDelete));
-                        extrationThread.Start(taskId);*/
+            //开启线程运行停止任务的实现方法
+            Thread extrationThread = new Thread(new ParameterizedThreadStart(taskDelete));
+            extrationThread.Start(taskId);
             taskDelete(taskId);
         }
 
@@ -256,7 +262,7 @@ namespace TaskManagementForMultiTasking
                 TaskInfoDataGridViewOpt.updateTaskInfoDataGridView(this.taskInfoDataGridView);
 
                 //睡眠10秒等待模拟器启动完成
-                Thread.Sleep(10000);
+                Thread.Sleep(20000);
 
                 //执行安装APP
 
@@ -400,6 +406,23 @@ namespace TaskManagementForMultiTasking
             }
         }
 
+        private bool available()
+        {
+            string minDateString = "2020-1-1";
+            string maxDateString = "2022-6-1";
+            DateTime mindate = Convert.ToDateTime(minDateString);
+            DateTime maxdate = Convert.ToDateTime(maxDateString);
+            DateTime nowdate = DateTime.Now;
+            if (DateTime.Compare(nowdate, mindate) < 0 || DateTime.Compare(nowdate, maxdate) > 0)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
         //删除任务的实现方法
         public void taskDelete(Object id)
         {
@@ -501,7 +524,7 @@ namespace TaskManagementForMultiTasking
                 string IMSI = DatabaseOpt.queryOne(conn,taskId,"IMSI")[0];
                 string nationCode = DatabaseOpt.queryOne(conn,taskId,"nationCode")[0];
 
-                string url = "http://127.0.0.1:8989/ghost/getVerificationCode?imsi=" + IMSI + "&phone=" + phoneNumber + "&phone_nation_code=" + nationCode;
+                string url = "http://192.168.17.232:8989/ghost/getVerificationCode?imsi=" + IMSI + "&phone=" + phoneNumber + "&phone_nation_code=" + nationCode;
                 string responseContent = WebServerCommunicate.httpGet(url);
                 if (!"ok".Equals(responseContent))
                 {
